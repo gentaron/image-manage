@@ -1,5 +1,10 @@
 import { Groq } from 'groq-sdk';
 
+// Validate API key exists
+if (!process.env.GROQ_API_KEY) {
+  throw new Error('GROQ_API_KEY environment variable is required');
+}
+
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
 });
@@ -21,8 +26,19 @@ export default async function handler(req, res) {
   try {
     const { imageBase64, fileName } = req.body;
 
+    // Validate input
     if (!imageBase64) {
       return res.status(400).json({ error: 'Image data is required' });
+    }
+
+    if (!imageBase64.startsWith('data:image/')) {
+      return res.status(400).json({ error: 'Invalid image format' });
+    }
+
+    // Basic file size check (base64 is ~1.33x original size)
+    const estimatedSize = (imageBase64.length * 0.75) / 1024 / 1024; // MB
+    if (estimatedSize > 10) {
+      return res.status(400).json({ error: 'Image too large (max 10MB)' });
     }
 
     // Convert base64 to proper format for Groq Vision

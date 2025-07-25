@@ -195,7 +195,30 @@
         let images = [];
         let imageCounter = 0;
         let currentModalImageId = null;
-        const VERCEL_API_URL = 'https://your-vercel-deployment.vercel.app/api';
+        const VERCEL_API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:3000/api' 
+            : `${window.location.protocol}//${window.location.host}/api`;
+
+        // Sanitize HTML to prevent XSS
+        function sanitizeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Show notification to user
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg text-white z-50 ${
+                type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
 
         // DOM Elements
         const uploadZone = document.getElementById('uploadZone');
@@ -241,7 +264,7 @@
                     const imageData = {
                         id: ++imageCounter,
                         src: e.target.result,
-                        name: file.name.split('.')[0],
+                        name: file.name.includes('.') ? file.name.split('.').slice(0, -1).join('.') : file.name,
                         description: '',
                         tags: [],
                         aiTags: [],
@@ -273,7 +296,7 @@
             imageGallery.innerHTML = imagesToRender.map(image => `
                 <div class="image-card rounded-xl overflow-hidden" data-id="${image.id}">
                     <div class="relative">
-                        <img src="${image.src}" alt="${image.name}" class="w-full h-48 object-cover cursor-pointer" onclick="openModal(${image.id})">
+                        <img src="${image.src}" alt="${sanitizeHTML(image.name)}" class="w-full h-48 object-cover cursor-pointer" onclick="openModal(${image.id})">
                         <button 
                             onclick="deleteImage(${image.id})" 
                             class="absolute top-2 right-2 bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-full transition-all duration-200"
@@ -416,6 +439,7 @@
                 }
             } catch (error) {
                 console.error('AI analysis failed:', error);
+                showNotification('AI analysis failed. Please try again later.', 'error');
             } finally {
                 imageData.isAnalyzing = false;
                 renderImages();
@@ -512,25 +536,6 @@
                 image.aiTags = image.aiTags.filter(t => t !== tag);
                 renderImages();
             }
-        }
-        
-        // Enhanced search to include AI tags
-        function handleSearch() {
-            const query = searchInput.value.toLowerCase().trim();
-            
-            if (!query) {
-                renderImages();
-                return;
-            }
-
-            const filteredImages = images.filter(image => 
-                image.name.toLowerCase().includes(query) ||
-                image.description.toLowerCase().includes(query) ||
-                image.tags.some(tag => tag.toLowerCase().includes(query)) ||
-                (image.aiTags && image.aiTags.some(tag => tag.toLowerCase().includes(query)))
-            );
-
-            renderImages(filteredImages);
         }
         
         // Keyboard shortcuts for modal
