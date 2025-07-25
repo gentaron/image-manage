@@ -1,0 +1,26 @@
+{
+  "name": "image-manage",
+  "version": "1.0.0",
+  "description": "AI-powered image management tool with modern UI",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "vercel build",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "groq-sdk": "^0.3.1"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.0"
+  },
+  "keywords": [
+    "image",
+    "management",
+    "ai",
+    "groq",
+    "vercel"
+  ],
+  "author": "gentaron",
+  "license": "MIT"
+}
