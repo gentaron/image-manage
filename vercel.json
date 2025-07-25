@@ -6,11 +6,5 @@
   },
   "env": {
     "GROQ_API_KEY": "$groq_api_key"
-  },
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/image-manager.html"
-    }
-  ]
+  }
 }
